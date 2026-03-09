@@ -2,10 +2,10 @@ import os
 import re
 import json
 import smtplib
-import requests
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from playwright.sync_api import sync_playwright
 
 METI_URL = "https://www.meti.go.jp/shingikai/"
 BASE_URL = "https://www.meti.go.jp"
@@ -15,14 +15,13 @@ APP_PASSWORD = os.environ["GMAIL_APP_PASSWORD"]
 PREV_FILE = "prev_links.json"
 
 def fetch_page():
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Accept-Language": "ja,en;q=0.9",
-    }
-    r = requests.get(METI_URL, headers=headers, timeout=30)
-    r.raise_for_status()
-    r.encoding = "utf-8"
-    return r.text
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page()
+        page.goto(METI_URL, wait_until="networkidle", timeout=60000)
+        html = page.content()
+        browser.close()
+    return html
 
 def parse_links(html):
     items = []
