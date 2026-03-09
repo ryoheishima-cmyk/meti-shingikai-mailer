@@ -1,0 +1,1 @@
+# meti-shingikai-mailer
